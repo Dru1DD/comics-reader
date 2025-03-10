@@ -16,6 +16,13 @@ import './tailwind.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
+import TelegramInit from './components/TelegramInit/TelegramInit';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import { ApiProvider, ApiProviderValue } from './providers/ApiProvider';
+import { RestApiClient } from './api/api-client';
+import HttpAuthApi from './api/auth-api';
+import { HttpUserApi } from './api/user-api';
+import AppInitializer from './components/AppInitializer';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -79,18 +86,34 @@ export default function App() {
     });
   }, []);
 
+  const services: ApiProviderValue = useMemo(() => {
+    const apiClient = new RestApiClient(import.meta.env.VITE_API_URL);
+
+    return {
+      authApi: new HttpAuthApi(apiClient),
+      userApi: new HttpUserApi(apiClient),
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <SDKProvider debug>
+        <TelegramInit />
+        <ScrollToTop />
         <QueryClientProvider client={queryClient}>
-          <Outlet />
-          <ToastContainer
-            pauseOnFocusLoss={false}
-            pauseOnHover={false}
-            theme="dark"
-            toastStyle={{ zIndex: 1000000 }}
-            position="bottom-right"
-          />
+          <ApiProvider value={services}>
+            <AppInitializer>
+              <h1>CHUJ</h1>
+              <Outlet />
+              <ToastContainer
+                pauseOnFocusLoss={false}
+                pauseOnHover={false}
+                theme="dark"
+                toastStyle={{ zIndex: 1000000 }}
+                position="bottom-right"
+              />
+            </AppInitializer>
+          </ApiProvider>
         </QueryClientProvider>
       </SDKProvider>
     </ErrorBoundary>
