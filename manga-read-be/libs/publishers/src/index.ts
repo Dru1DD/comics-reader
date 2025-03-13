@@ -1,0 +1,1 @@
+export { PublishersModule } from './publishers.module';
